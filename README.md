@@ -1,66 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 🧺 Wash24 — API (Laravel)
 
-## About Laravel
+**OTP-authenticated backend for a laundry/car-wash booking service, deployed serverless on Vercel**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+A Laravel REST API: mobile-number + OTP registration and login (via Laravel
+Passport tokens), user profile management, deployed as a PHP serverless
+function on Vercel rather than a traditional long-running server.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+[![View Repository](https://img.shields.io/badge/GitHub-View%20Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/bhushan1934/wash24)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+![Laravel](https://img.shields.io/badge/Laravel-10-FF2D20?logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8-777BB4?logo=php&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deploy-Vercel%20serverless-000000?logo=vercel&logoColor=white)
+![License](https://img.shields.io/badge/license-proprietary-red)
 
-## Learning Laravel
+</div>
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+<br>
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Status
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+This is the **first of two implementations** of the same product in this
+account — see [`nest-wash24`](https://github.com/bhushan1934/nest-wash24)
+for a later NestJS/Prisma rewrite with a more complete data model
+(address/society fields, a dashboard endpoint). This Laravel version is the
+earlier pass: auth and profile scaffolding is in place, the actual
+wash/booking domain (services, pricing, scheduling) hadn't been built yet.
 
-## Laravel Sponsors
+<br>
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## API surface
 
-### Premium Partners
+| Method | Route | Auth | Does |
+|---|---|---|---|
+| POST | `/api/register` | — | Create (or find) a user by mobile number, issue a 4-digit OTP |
+| POST | `/api/generate-otp` | — | Re-issue an OTP for an existing user |
+| POST | `/api/verify-otp` | — | Verify an OTP |
+| POST | `/api/login` | — | Verify mobile + OTP, issue a Passport access token |
+| POST | `/api/logout` | token | Revoke the current token |
+| POST | `/api/user/profile` | token | Create the authenticated user's profile (name, gender, address) |
+| GET | `/api/users` / `/api/get-user` | token | Fetch the authenticated user (with profile) |
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+<br>
 
-## Contributing
+## Deployment: Laravel as a Vercel serverless function
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+`api/index.php` + `api/vercel.json` run the whole Laravel app through the
+community `@vercel/php` runtime rather than a persistent PHP-FPM process.
+Vercel's filesystem is read-only outside `/tmp`, so the config points
+Laravel's config/route/view/event caches at `/tmp/*` and switches
+`CACHE_DRIVER`/`SESSION_DRIVER` to array/cookie-based storage — the usual
+adjustments needed to make a stateful framework behave on a stateless
+function host.
 
-## Code of Conduct
+<br>
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Running it locally
 
-## Security Vulnerabilities
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+<br>
+
+## Known gaps (flagging honestly, not silently patched)
+
+- **OTP is returned directly in the API response** (`registerAndGenerateOtp`
+  returns `'otp' => $otp` in the JSON body) and actual SMS delivery is a
+  `// TODO` comment, not implemented. Fine for local development; this
+  **must** be removed and wired to a real SMS provider (Twilio/MSG91/etc.)
+  before this is anywhere near production — right now anyone who can call
+  the endpoint can read the OTP without needing the phone.
+- Only `User` and `UserProfile` models exist — no booking/service/pricing
+  domain yet.
+
+<br>
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+All rights reserved — see [`LICENSE`](LICENSE). Shared for portfolio/review
+purposes; not licensed for reuse, redistribution, or derivative work.
